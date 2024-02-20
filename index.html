@@ -10,6 +10,7 @@
     <style type="text/css">
         body {
             margin: 0;
+            background-color: black;
         }
     </style>
 </head>
@@ -25,7 +26,7 @@
             physics: {
                 default: 'arcade',
                 arcade: {
-                    gravity: { y: 300},
+                    gravity: { y: 250},
                     debug: true
                 }
             },
@@ -35,7 +36,8 @@
                 update: update
             }
         };
-
+        
+        const coinSound = new Audio('./assets/super-mario-coin-sound.mp3');
          var player;
          var coins;
          var koopas;
@@ -49,27 +51,35 @@
 
          function preload() 
          {
-            this.load.image('sky', './assets/sky.png');
-            this.load.image('ground', './assets/platform.png');
+             this.load.image('sky', './assets/sky.png');
+             this.load.image('ground', './assets/platform.png');
             this.load.image('groundthin', 'assets/platformthin.png');
             this.load.image('koopa', './assets/KoopaTroopa.png')
             this.load.image('coin', '/assets/coinL.png')
             this.load.spritesheet('mario', 'assets/mario.png', { frameWidth: 16, frameHeight: 32});
-
-         }
-
+            
+        }
+        
          function create() 
          {
             this.add.image(500, 400, 'sky');
             grounds = this.physics.add.staticGroup();
             grounds.create(500, 900, 'ground').setScale(1).refreshBody();
+            
+            grounds.create(-130, 600, 'groundthin').setScale(1);
+            grounds.create(-200, 400, 'groundthin').setScale(1);
+            grounds.create(-300, 200, 'groundthin').setScale(1);
+            grounds.create(500, -125, 'ground').setScale(1);
+            grounds.create( 1130, 600, 'groundthin').setScale(1);
+            grounds.create( 1200, 400, 'groundthin').setScale(1);
+            grounds.create( 1300, 200, 'groundthin').setScale(1);
 
-            grounds.create(0, 400, 'groundthin').setScale(1);
+
             
 
             player = this.physics.add.sprite(500, 10, 'mario');
 
-            player.setBounce(.2);
+            player.setBounce(.3);
             player.setCollideWorldBounds(true);
 
             this.anims.create({
@@ -107,7 +117,7 @@
 
             koopas = this.physics.add.group();
 
-            scoreText = this.add.text(16, 16, 'Coins: 0', { fontSize: '32px', fill: '#FFFFF'});
+            scoreText = this.add.text(16, 32, 'Coins: 0', { fontSize: '50px', fill: '#FFF', });
 
             this.physics.add.collider(player, grounds);
             this.physics.add.collider(coins, grounds);
@@ -151,6 +161,7 @@
 
             score += 1;
             scoreText.setText('Coins: ' + score);
+            coinSound.play()
 
             if (coins.countActive(true) === 0) {
                 coins.children.iterate(function (child) {
@@ -162,7 +173,7 @@
                 var x = (player.x < 400) ? Phaser.Math.Between(400, 800) : Phaser.Math.Between(0, 400);
 
                 var koopa = koopas.create(x, 16, 'koopa');
-                koopa.setBounce(.5);
+                koopa.setBounce(1);
                 koopa.setCollideWorldBounds(true);
                 koopa.setVelocity(Phaser.Math.Between(-200, 200), 20);
                 koopa.allowGravity = false;
