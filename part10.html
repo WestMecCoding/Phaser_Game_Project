@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Making your first Phaser 3 Game - Part 10</title>
+    <!-- <script src="//cdn.jsdelivr.net/npm/phaser@3.11.0/dist/phaser.js"></script> -->
+    <script src="./phaser.min.js"></script>
+
+    <style type="text/css">
+      body {
+        margin: 0;
+      }
+    </style>
+  </head>
+
+  <body>
+    <script type="text/javascript">
+      var config = {
+    type: Phaser.AUTO,
+    width: 800,
+    height: 600,
+    physics: {
+        default: "arcade",
+        arcade: {
+            gravity: { y: 300 },
+            debug: false,
+        },
+    },
+    scene: {
+        preload: preload,
+        create: create,
+        update: update,
+    },
+};
+
+var player;
+var stars;
+var bombs;
+var platforms;
+var cursors;
+var score = 0;
+var hearts = 3; // Initialize hearts to 3
+var gameOver = false;
+var scoreText;
+var heartsText; // Declare heartsText
+
+var game = new Phaser.Game(config);
+
+function preload() {
+    this.load.image("sky", "assets/sky.png");
+    this.load.image("ground", "assets/platform.png");
+    this.load.image("star", "assets/star.png");
+    this.load.image("bomb", "assets/bomb.png");
+    this.load.image("heart", "assets/heart.png"); // Load heart image
+    this.load.spritesheet("dude", "assets/dude.png", {
+        frameWidth: 32,
+        frameHeight: 48,
+    });
+}
+
+function create() {
+    this.add.image(400, 300, "sky");
+
+    platforms = this.physics.add.staticGroup();
+
+    platforms.create(400, 568, "ground").setScale(2).refreshBody();
+    platforms.create(600, 400, "ground");
+    platforms.create(50, 250, "ground");
+    platforms.create(750, 220, "ground");
+
+    player = this.physics.add.sprite(100, 450, "dude");
+    player.setBounce(0.2);
+    player.setCollideWorldBounds(true);
+
+    this.anims.create({
+        key: "left",
+        frames: this.anims.generateFrameNumbers("dude", { start: 0, end: 3 }),
+        frameRate: 10,
+        repeat: -1,
+    });
+
+    this.anims.create({
+        key: "turn",
+        frames: [{ key: "dude", frame: 4 }],
+        frameRate: 20,
+    });
+
+    this.anims.create({
+        key: "right",
+        frames: this.anims.generateFrameNumbers("dude", { start: 5, end: 8 }),
+        frameRate: 10,
+        repeat: -1,
+    });
+
+    cursors = this.input.keyboard.createCursorKeys();
+
+    stars = this.physics.add.group({
+        key: "star",
+        repeat: 11,
+        setXY: { x: 12, y: 0, stepX: 70 },
+    });
+
+    stars.children.iterate(function (child) {
+        child.setBounceY(Phaser.Math.FloatBetween(0.4, 0.8));
+    });
+
+    bombs = this.physics.add.group();
+    // Create hearts group
+    hearts = this.physics.add.group({
+        key: "heart",
+        repeat: 3,
+        setXY: { x: 12, y: 0, stepX: 400 }, // Adjust position as needed
+    });
+
+    scoreText = this.add.text(16, 16, "score: 0", {
+        fontSize: "32px",
+        fill: "#000",
+    });
+
+    heartsText = this.add.text(600, 16, "hearts: 3", {
+        fontSize: "32px",
+        fill: "#000",
+    });
+
+    this.physics.add.collider(player, platforms);
+    this.physics.add.collider(stars, platforms);
+    this.physics.add.collider(bombs, platforms);
+    this.physics.add.collider(hearts, platforms);
+
+    this.physics.add.overlap(player, stars, collectStar, null, this);
+    this.physics.add.overlap(player, bombs, hitBomb, null, this);
+    this.physics.add.overlap(player, hearts, collectHeart, null, this);
+}
+
+function update() {
+    if (gameOver) {
+        return;
+    }
+
+    if (cursors.left.isDown) {
+        player.setVelocityX(-160);
+        player.anims.play("left", true);
+    } else if (cursors.right.isDown) {
+        player.setVelocityX(160);
+        player.anims.play("right", true);
+    } else {
+        player.setVelocityX(0);
+        player.anims.play("turn");
+    }
+
+    if (cursors.up.isDown && player.body.touching.down) {
+        player.setVelocityY(-330);
+    }
+}
+
+function collectStar(player, star) {
+    star.disableBody(true, true);
+    score += 10;
+    scoreText.setText("Score: " + score);
+
+    if (stars.countActive(true) === 0) {
+        stars.children.iterate(function (child) {
+            child.enableBody(true, child.x, 0, true, true);
+        });
+
+        var x1 =
+            player.x < 400
+                ? Phaser.Math.Between(400, 600)
+                : Phaser.Math.Between(0, 200);
+
+        var x2 =
+            player.x < 400
+                ? Phaser.Math.Between(600, 800)
+                : Phaser.Math.Between(200, 400);
+
+        var bomb1 = bombs.create(x1, 16, "bomb");
+        bomb1.setBounce(1);
+        bomb1.setCollideWorldBounds(true);
+        bomb1.setVelocity(Phaser.Math.Between(-200, 200), 20);
+        bomb1.allowGravity = false;
+
+        var bomb2 = bombs.create(x2, 16, "bomb");
+        bomb2.setBounce(1);
+        bomb2.setCollideWorldBounds(true);
+        bomb2.setVelocity(Phaser.Math.Between(-200, 200), 20);
+        bomb2.allowGravity = false;
+    }
+}
+
+
+
+function hitBomb(player, bomb) {
+    if (hearts > 0) {
+        hearts--;
+        heartsText.setText("Hearts: " + hearts);
+        bomb.disableBody(true, true);
+    } else {
+        this.physics.pause();
+        player.setTint(0xff0000);
+        player.anims.play("turn");
+        gameOver = true;
+    }
+}
+
+function collectHeart(player, heart) {
+    if (hearts < 3) {
+        hearts++;
+        heartsText.setText("Hearts: " + hearts);
+        heart.disableBody(true, true);
+        
+        // Decrease score when a heart is collected
+        score -= 20; // Adjust score decrement as needed
+        if (score < 0) {
+            score = 0;
+        }
+        scoreText.setText("Score: " + score);
+    }
+}
+
+
+    </script>
+  </body>
+</html>
