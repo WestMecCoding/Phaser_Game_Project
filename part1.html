@@ -46,8 +46,11 @@
       var tempScore1 = 0;
       var scoreText;
       var bombText;
+      var endText
       var playerIsDead = false;
       var player1IsDead = false;
+      var bombTemp = null
+      var bombSpawn = false
 
       var game = new Phaser.Game(config);
 
@@ -86,12 +89,12 @@
         platforms.create(750, 140, "ground");
 
         platforms.create(1736, 450, "ground").setScale(1, 100).refreshBody();
-        platforms.create(-199, 450, "ground").setScale(1, 100).refreshBody();
+        platforms.create(-200, 450, "ground").setScale(1, 100).refreshBody();
 
         player = this.physics.add.sprite(100, 450, "dude").setScale(1.5);
         player1 = this.physics.add.sprite(1450, 450, "dude").setScale(1.5);
         skel = this.physics.add.sprite(700, 350, "skel").setScale(1.5);
-        skelVel = 100;
+        skelVel = 175;
 
         player.setBounce(0.1);
         player.setCollideWorldBounds(true);
@@ -238,17 +241,19 @@
         this.physics.add.overlap(player, stars1, collectStar, null, this);
         this.physics.add.overlap(player, stars2, collectStar, null, this);
         this.physics.add.collider(player, bombs, hitBomb, null, this);
-        this.physics.add.collider(player, skel, hitBomb, null, this);
-        this.physics.add.collider(player1, skel, hitBomb, null, this);
+        this.physics.add.collider(player, skel, hitSkel, null, this);
+        // this.physics.add.collider(player1, skel, hitBomb, null, this);
         this.physics.add.overlap(player1, stars, collectStar, null, this);
         this.physics.add.overlap(player1, stars1, collectStar, null, this);
         this.physics.add.overlap(player1, stars2, collectStar, null, this);
         this.physics.add.collider(player1, bombs, hitBomb1, null, this);
-        this.physics.add.collider(player1, skel, hitBomb1, null, this);
+        this.physics.add.collider(player1, skel, hitSkel1, null, this);
         skel.anims.play("leftSkel", true);
       }
 
       function update() {
+
+
         if (cursors.left.isDown) {
           player.setVelocityX(-360);
 
@@ -293,6 +298,24 @@
           skelVel = skelVel * -1;
           skel.anims.play("leftSkel", true);
         }
+
+        if (bombSpawn){
+        if (bombTemp == null) {
+          bombTemp = bombs.x
+          console.log(bombs.x)
+        } else {
+          if (bombTemp == bombs.x) {
+            this.physics.pause();
+          endText = this.add.text(550, 250, "GAME OVER", {
+          fontSize: "72px",
+          fill: "#f00",
+          })
+          gameOver = true;
+          } else {
+            bombTemp = null
+          }
+        }
+      }
       }
 
       function collectStar(player, star) {
@@ -321,7 +344,7 @@
             player.x < 400
               ? Phaser.Math.Between(400, 800)
               : Phaser.Math.Between(0, 400);
-
+          
           var bomb = bombs.create(x, 16, "bomb");
           bomb.setBounce(1);
           bomb.setScale(0.1);
@@ -329,6 +352,7 @@
           bomb.setVelocity(Phaser.Math.Between(-600, 600), 40);
           tempScore1 = 0;
           bombText.setText("Next Bomb: " + "0" + "/8");
+          bombSpawn = true
         }
       }
 
@@ -340,12 +364,21 @@
         player.body.moves = false;
         console.log(playerIsDead);
         if (player1IsDead == true) {
+          endText = this.add.text(550, 250, "GAME OVER", {
+          fontSize: "72px",
+          fill: "#f00",
+          })
           this.physics.pause();
           gameOver = true;
         }
       }
 
-      function hitSkel(player, bomb) {
+      function hitSkel(player, skel) {
+        if(skelVel/skelVel == -1){
+          skel.anims.play("rightSkel", true);
+        } else {
+          skel.anims.play("leftSkel", true);
+        }
         player.setTint(0xff0000);
         skelVel = skelVel * -1;
         player.anims.play("turn");
@@ -353,20 +386,34 @@
         player.body.moves = false;
         console.log(playerIsDead);
         if (player1IsDead == true) {
+          endText = this.add.text(550, 250, "GAME OVER", {
+          fontSize: "72px",
+          fill: "#f00",
+          })
           this.physics.pause();
           gameOver = true;
         }
       }
 
-      function hitSkel1(player, bomb) {
-        player.setTint(0xff0000);
+      function hitSkel1(player1, skel) {
+        if(skelVel/skelVel == -1){
+          console.log("left")
+          skel.anims.play("leftSkel", true);
+        } else {
+          skel.anims.play("rightSkel", true);
+        }
+        player1.setTint(0xff0000);
         skelVel = skelVel * -1;
-        skel.body.position.x = skel.body.position.x - 50;
-        player.anims.play("turn");
-        playerIsDead = true;
-        player.body.moves = false;
+        // skel.body.position.x = skel.body.position.x - 50;
+        player1.anims.play("turn");
+        player1IsDead = true;
+        player1.body.moves = false;
         console.log(playerIsDead);
-        if (player1IsDead == true) {
+        if (playerIsDead == true) {
+          endText = this.add.text(550, 250, "GAME OVER", {
+          fontSize: "72px",
+          fill: "#f00",
+          })
           this.physics.pause();
           gameOver = true;
         }
@@ -380,6 +427,10 @@
         console.log(playerIsDead == true);
         if (playerIsDead) {
           this.physics.pause();
+          endText = this.add.text(550, 250, "GAME OVER", {
+          fontSize: "72px",
+          fill: "#f00",
+          })
           gameOver = true;
         }
       }
