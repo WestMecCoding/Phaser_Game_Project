@@ -52,7 +52,7 @@
       var speedCollected = 0;
       var speedCollectText;
       var speedIncreaseText;
-      var winText;
+      var loseText;
       var leftSpeed = -160;
       var rightSpeed = 160;
 
@@ -82,7 +82,7 @@
           fill: "#000",
         });
 
-        winText = this.add.text(180, 280, "", {
+        loseText = this.add.text(180, 280, "", {
           fontSize: "64px",
           fill: "#fff",
         });
@@ -117,6 +117,7 @@
         });
 
         cursors = this.input.keyboard.createCursorKeys();
+        wasd = this.input.keyboard.addKeys({ 'up': Phaser.Input.Keyboard.KeyCodes.W, 'left': Phaser.Input.Keyboard.KeyCodes.A, 'right': Phaser.Input.Keyboard.KeyCodes.D });
 
         diamonds = this.physics.add.group({
           key: "diamond",
@@ -139,14 +140,15 @@
         this.physics.add.collider(bombs, bombs)
 
         this.physics.add.collider(player, bombs, hitBomb, null, this);
+        
       }
 
       function update() {
-        if (cursors.left.isDown) {
+        if (wasd.left.isDown || cursors.left.isDown) {
           player.setVelocityX(leftSpeed);
 
           player.anims.play("left", true);
-        } else if (cursors.right.isDown) {
+        } else if (wasd.right.isDown || cursors.right.isDown) {
           player.setVelocityX(rightSpeed);
 
           player.anims.play("right", true);
@@ -156,14 +158,11 @@
           player.anims.play("turn");
         }
 
-        if (cursors.up.isDown && player.body.touching.down) {
+        if (wasd.up.isDown && player.body.touching.down || cursors.up.isDown && player.body.touching.down) {
           player.setVelocityY(-330);
         }
 
-        //if (score === 120) {
-         // winText.setText("YOU WIN!!!!!!!!");
-          //this.physics.pause();
-        //};
+        
       }
 
       function collectItem(player, diamond) {
@@ -193,6 +192,7 @@
           this.physics.add.collider(speed, platforms)
 
           this.physics.add.overlap(player, speed, collectSpeed, null, this)
+          this.physics.add.overlap(speed, bombs, speedDestroy, null, this)
 
 
           var x =
@@ -221,6 +221,10 @@
         player.anims.play("turn");
 
         gameOver = true;
+
+        if (gameOver === true) {
+          loseText.setText("YOU LOST!!!!!!!!!!!")
+        }
       }
 
       function removeText() {
@@ -238,6 +242,11 @@
 
         speedCollected += 1;
         speedCollectText.setText("Speeds collected: " + speedCollected);
+      }
+
+      function speedDestroy(speed, bomb) {
+        speed.disableBody(true, true)
+        bomb.disableBody(true, true)
       }
     </script>
   </body>
