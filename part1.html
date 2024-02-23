@@ -78,7 +78,12 @@
 
         platforms = this.physics.add.staticGroup();
 
-        platforms.create(400, 800, "ground").setScale(7).refreshBody();
+        // platforms.create(400, 800, "ground").setScale(7).refreshBody();
+        platforms.create(50, 725, "ground")
+        platforms.create(450, 725, "ground")
+        platforms.create(850, 725, "ground")
+        platforms.create(1250, 725, "ground")
+        platforms.create(1450, 725, "ground")
 
         platforms.create(600, 400, "ground");
         platforms.create(920, 400, "ground");
@@ -91,8 +96,8 @@
         platforms.create(1736, 450, "ground").setScale(1, 100).refreshBody();
         platforms.create(-200, 450, "ground").setScale(1, 100).refreshBody();
 
-        player = this.physics.add.sprite(100, 450, "dude").setScale(1.5);
-        player1 = this.physics.add.sprite(1450, 450, "dude").setScale(1.5);
+        player = this.physics.add.sprite(1450, 450, "dude").setScale(1.5);
+        player1 = this.physics.add.sprite(100, 450, "dude").setScale(1.5);
         skel = this.physics.add.sprite(700, 350, "skel").setScale(1.5);
         skelVel = 175;
 
