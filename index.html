@@ -37,10 +37,13 @@
             }
         };
         
-        const coinSound = new Audio('./assets/super-mario-coin-sound.mp3');
+        const coinSound = new Audio('./assets/mariocoin.mp3');
+        const hurtSound = new Audio('./assets/mariooof.mp3');
+
          var player;
          var coins;
          var koopas;
+         var goombas;   
          var grounds;
          var cursors;
          var score = 0;
@@ -54,8 +57,9 @@
              this.load.image('sky', './assets/sky.png');
              this.load.image('ground', './assets/platform.png');
             this.load.image('groundthin', 'assets/platformthin.png');
-            this.load.image('koopa', './assets/KoopaTroopa.png')
-            this.load.image('coin', '/assets/coinL.png')
+            this.load.image('koopa', './assets/KoopaTroopa.png');
+            this.load.image('goomba', './assets/goomba.png');
+            this.load.image('coin', './assets/coinL.png');
             this.load.spritesheet('mario', 'assets/mario.png', { frameWidth: 16, frameHeight: 32});
             
         }
@@ -116,16 +120,21 @@
             });
 
             koopas = this.physics.add.group();
+            goombas = this.physics.add.group();
 
-            scoreText = this.add.text(16, 32, 'Coins: 0', { fontSize: '50px', fill: '#FFF', });
+
+            scoreText = this.add.text(16, 32, 'Coins: 0', { fontSize: '50px', fill: '#FFF',});
 
             this.physics.add.collider(player, grounds);
             this.physics.add.collider(coins, grounds);
             this.physics.add.collider(koopas, grounds);
+            this.physics.add.collider(goombas, grounds);
+
 
             this.physics.add.overlap(player, coins, collectCoin, null, this);
 
             this.physics.add.collider(player, koopas, hitKoopa, null, this);
+            this.physics.add.collider(player, goombas, hitGoomba, null, this);
          }
 
          function update() 
@@ -177,6 +186,12 @@
                 koopa.setCollideWorldBounds(true);
                 koopa.setVelocity(Phaser.Math.Between(-200, 200), 20);
                 koopa.allowGravity = false;
+
+                var goomba = goombas.create(x, 16, 'goomba');
+                goomba.setBounce(.3);
+                goomba.setCollideWorldBounds(true);
+                goomba.setVelocity(Phaser.Math.Between(-200, 200), 20);
+                goomba.allowGravity = true;
             }
 
             
@@ -186,8 +201,20 @@
             this.physics.pause();
 
             player.setTint(0xff0000);
+            hurtSound.play()
 
             player.anims.play('turn');
+
+            gameOver = true;
+        }
+
+        function hitGoomba(player, goomba) {
+            this.physics.pause();
+
+            player.setTint(0xff0000);
+            hurtSound.play()
+
+            player.anims.play('turn')
 
             gameOver = true;
         }
